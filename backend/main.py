@@ -94,10 +94,14 @@ def batch_analyze(req: BatchAnalyzeRequest):
             # Get explanation
             explanation = scorer.explain(candidate.resume_text, req.jd_text)
             
+            # Generate Narrative Verdict
+            verdict = scorer.generate_verdict(score, explanation)
+
             results.append({
                 "name": candidate.name,
                 "score": score,
-                "explanation": explanation
+                "explanation": explanation,
+                "verdict": verdict
             })
         
         return {"results": results}

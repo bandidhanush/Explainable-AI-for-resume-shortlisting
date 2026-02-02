@@ -144,6 +144,26 @@ const CandidateCard = ({ candidate, rank }) => {
                         className="border-t border-white/5 bg-black/20"
                     >
                         <div className="p-6 pt-2">
+                            {/* AI Verdict */}
+                            {candidate.verdict && (
+                                <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-white/5 to-transparent border border-white/5 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-3 opacity-10">
+                                        <Sparkles className="w-12 h-12 text-white" />
+                                    </div>
+                                    <h4 className="flex items-center gap-2 text-sm font-semibold text-heading mb-2">
+                                        <Sparkles className="w-4 h-4 text-accent" />
+                                        AI Analysis Verdict
+                                    </h4>
+                                    <p className="text-sm text-body leading-relaxed">
+                                        <span className={`font-semibold ${candidate.verdict.title === 'Highly Recommended' ? 'text-secondary' :
+                                                candidate.verdict.title === 'Potential Fit' ? 'text-amber-500' : 'text-primary'
+                                            }`}>
+                                            {candidate.verdict.title}:
+                                        </span>{" "}
+                                        {candidate.verdict.text}
+                                    </p>
+                                </div>
+                            )}
                             {/* Match Summary */}
                             <div className="grid grid-cols-2 gap-4 mb-6">
                                 <div className="space-y-2">

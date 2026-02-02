@@ -114,3 +114,62 @@ class CandidateScorer:
         )
         
         return exp.as_list(label=0)
+
+    def generate_verdict(self, score, explanation):
+        """
+        Synthesizes a human-readable explanation based on the score and LIME features.
+        """
+        # 1. Determine Overall Sentiment
+        if score >= 80:
+            sentiment = "Highly Recommended"
+            tone = "positive"
+            intro = "This candidate is an exceptional match for the role."
+        elif score >= 60:
+            sentiment = "Potential Fit"
+            tone = "neutral"
+            intro = "This candidate shows promise but has some alignment gaps."
+        else:
+            sentiment = "Not Suitable"
+            tone = "negative"
+            intro = "This candidate does not appear to be a strong match for the current requirements."
+
+        # 2. Extract Key Drivers
+        # Sort by absolute impact to find what mattered most
+        sorted_features = sorted(explanation, key=lambda x: abs(x[1]), reverse=True)
+        top_drivers = sorted_features[:5]
+        
+        positives = [f[0] for f in top_drivers if f[1] > 0]
+        negatives = [f[0] for f in top_drivers if f[1] < 0]
+
+        # 3. Construct Narrative
+        narrative_parts = [intro]
+
+        if positives:
+            if len(positives) == 1:
+                narrative_parts.append(f"Their suitability is primarily driven by their experience with **{positives[0]}**.")
+            else:
+                terms = ", ".join([f"**{p}**" for p in positives[:-1]]) + f", and **{positives[-1]}**"
+                narrative_parts.append(f"Key strengths include strong alignment with {terms}.")
+
+        if negatives:
+            if tone == "positive":
+                narrative_parts.append("However,")
+            elif tone == "neutral":
+                narrative_parts.append("Specifically,")
+            
+            if len(negatives) == 1:
+                narrative_parts.append(f"the model successfully identified a gap or lower relevance regarding **{negatives[0]}**.")
+            else:
+                terms = ", ".join([f"**{n}**" for n in negatives[:-1]]) + f", and **{negatives[-1]}**"
+                narrative_parts.append(f"Missing or less relevant terms include {terms}, which negatively impacted the score.")
+
+        # 4. Closing
+        if tone == "positive":
+            narrative_parts.append("They are likely a worthy candidate for an interview.")
+        elif tone == "negative":
+            narrative_parts.append("They may not have the specific technical depth required.")
+
+        return {
+            "title": sentiment,
+            "text": " ".join(narrative_parts)
+        }
